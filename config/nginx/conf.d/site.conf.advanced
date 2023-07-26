@@ -1,0 +1,115 @@
+server {
+    charset utf-8;
+    client_max_body_size 128M;
+
+    listen 80;
+    #listen [::]:80;
+
+    #server_name labbit.local www.labbit.local;
+
+    set $base_root /var/www/html;
+    root $base_root;
+
+    index index.php index.html;
+
+    access_log /var/log/nginx/access.log;
+    error_log /var/log/nginx/error.log debug;
+
+    location /  {
+                root $base_root/frontend/web;
+                try_files $uri $uri/ /frontend/web/index.php$is_args$args;
+
+                location ~ ^/assets/.+\.php(/|$) {
+                    deny all;
+                }
+    }
+
+    location /static  {
+                    root $base_root;
+                    access_log off;
+                    autoindex off;
+                    #expires max;
+        }
+
+    location /admin  {
+        alias $base_root/backend/web/;
+
+        # redirect to the URL without a trailing slash (uncomment if necessary)
+        location = /admin/ {
+            return 301 /admin;
+        }
+
+        # prevent the directory redirect to the URL with a trailing slash
+        location = /admin {
+            # if your location is "/backend", try use "/backend/backend/web/index.php$is_args$args"
+            # bug ticket: https://trac.nginx.org/nginx/ticket/97
+            try_files $uri /backend/web/index.php$is_args$args;
+        }
+
+        # if your location is "/backend", try use "/backend/backend/web/index.php$is_args$args"
+        # bug ticket: https://trac.nginx.org/nginx/ticket/97
+        try_files $uri $uri/ /backend/web/index.php$is_args$args;
+
+        # omit static files logging, and if they don't exist, avoid processing by Yii (uncomment if necessary)
+        #location ~ ^/admin/.+\.(css|js|ico|png|jpe?g|gif|svg|ttf|mp4|mov|swf|pdf|zip|rar)$ {
+        #    log_not_found off;
+        #    access_log off;
+        #    try_files $uri =404;
+        #}
+
+        location ~ ^/admin/assets/.+\.php(/|$) {
+            deny all;
+        }
+    }
+
+    location /api/v1  {
+
+        alias $base_root/api/v1/web/;
+
+        # redirect to the URL without a trailing slash (uncomment if necessary)
+        location = /api/v1/ {
+            return 301 /api/v1;
+        }
+
+        # prevent the directory redirect to the URL with a trailing slash
+        location = /api/v1 {
+            # if your location is "/backend", try use "/backend/backend/web/index.php$is_args$args"
+            # bug ticket: https://trac.nginx.org/nginx/ticket/97
+            try_files $uri /api/v1/api/v1/web/index.php$is_args$args;
+        }
+
+        # if your location is "/backend", try use "/backend/backend/web/index.php$is_args$args"
+        # bug ticket: https://trac.nginx.org/nginx/ticket/97
+        try_files $uri $uri/ /api/v1/api/v1/web/index.php$is_args$args;
+
+        # omit static files logging, and if they don't exist, avoid processing by Yii (uncomment if necessary)
+        #location ~ ^/api/.+\.(css|js|ico|png|jpe?g|gif|svg|ttf|mp4|mov|swf|pdf|zip|rar)$ {
+        #    log_not_found off;
+        #    access_log off;
+        #    try_files $uri =404;
+        #}
+
+        location ~ ^/api/assets/.+\.php(/|$) {
+            deny all;
+        }
+    }
+
+    location ~ ^/.+\.php(/|$) {
+        rewrite (?!^/((frontend|backend|api/v1)/web|admin|api/v1))^ /frontend/web$uri break;
+        rewrite (?!^/backend/web)^/admin(/.+)$ /backend/web$1 break;
+        rewrite (?!^/api/v1/web)^/api(/.+)$ /api/v1/web$1 break;
+
+        fastcgi_pass php-fpm:9000; # proxy requests to a TCP socket
+        #fastcgi_pass unix:/var/run/php-fpm.sock; # proxy requests to a UNIX domain socket (check your www.conf file)
+        #try_files $uri $uri /frontend/web/index.php;
+        fastcgi_split_path_info ^(.+\.php)(.*)$;
+        include /etc/nginx/fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        try_files $fastcgi_script_name =404;
+        fastcgi_read_timeout 3600;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}
