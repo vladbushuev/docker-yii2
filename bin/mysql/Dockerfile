@@ -1,2 +1,2 @@
-FROM mariadb:10.3
+FROM mariadb:11
 RUN echo "default-authentication-plugin=mysql_native_password" >> /etc/mysql/my.cnf
