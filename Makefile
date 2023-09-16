@@ -14,7 +14,7 @@ docker-down-clear:
 	docker-compose down -v --remove-orphans
 
 docker-bash:
-	docker-compose exec --user=php php-fpm  bash
+	docker-compose exec --user=php php bash
 
 docker-clear-all:
 	docker stop `docker ps -qa`
