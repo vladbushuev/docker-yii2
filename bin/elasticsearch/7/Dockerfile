@@ -1,4 +1,4 @@
-FROM elasticsearch:7.17.10
+FROM elasticsearch:7.17.13
 
 RUN mkdir -p /etc/elasticsearch/config
 COPY ./config/ /usr/share/elasticsearch/config/
