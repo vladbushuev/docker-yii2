@@ -30,10 +30,10 @@ services:
       - ./config/php/${PHP_VERSION}/php.ini:/usr/local/etc/php/php.ini
       - composer:/var/www/.composer/cache
     links:
-      - db
+      - mariadb
       - elasticsearch
     depends_on:
-      - db
+      - mariadb
       - mailer
     environment:
       COMPOSER_MEMORY_LIMIT: -1
@@ -41,7 +41,7 @@ services:
       PHP_IDE_CONFIG: serverName=${XDEBUG_STORM_SERVER_NAME}
     networks:
       - main_network
-  db:
+  mariadb:
     build: ./bin/mariadb
     container_name: ${PROJECT_NAME}_mariadb
     restart: 'always'
