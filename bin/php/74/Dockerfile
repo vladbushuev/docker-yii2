@@ -1,18 +1,12 @@
 FROM php:7.4-fpm
 
-# Surpresses debconf complaints of trying to install apt packages interactively
-# https://github.com/moby/moby/issues/4032#issuecomment-192327844
-
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Update
 RUN apt-get -y update --fix-missing && \
     apt-get upgrade -y && \
     apt-get --no-install-recommends install -y apt-utils && \
     rm -rf /var/lib/apt/lists/*
 
-
-# Install useful tools and install important libaries
 RUN apt-get -y update && \
     apt-get -y --no-install-recommends install \
     nano \
@@ -57,7 +51,6 @@ RUN pecl install redis-5.2.2 && \
     docker-php-ext-enable redis
 
 # Other PHP7 Extensions
-
 RUN docker-php-ext-install zip && \
     docker-php-ext-install pdo_mysql && \
     docker-php-ext-install pdo_sqlite && \
